@@ -1,3 +1,4 @@
+from pickle import TRUE
 import speech_recognition as sr
 import nltk
 import pygame.mixer
@@ -15,18 +16,61 @@ pygame.mixer.init()
 
 index = 0
 
+def listSavedFilesAndDelete():
+    try :
+
+        files = []
+        for file in os.listdir():
+            if file.endswith(".mp3"):
+                files.append(file)
+        for file in files:
+            os.remove(file)
+        print(files)
+        return files
+    except Exception as e:
+        return []
+
+
+def switchVoiceRecoginition(textVoice):
+    match textVoice:
+        case "olá":
+            return 1
+        case "Olá":
+            return 1
+        case _:
+            return 0
+        
+def playSetence(sentence):
+    response = sentence
+    tts = gTTS(text=response, lang='pt-br')
+
+    # Incrementando o índice
+    index += 1
+    
+    # Gerando um nome de arquivo único com o índice
+    file_name = f"response_{index}.mp3"
+    
+    tts.save(file_name)
+    pygame.mixer.music.load(file_name)
+    pygame.mixer.music.play()
+    listSavedFilesAndDelete()
+    while pygame.mixer.music.get_busy():
+        pygame.time.Clock().tick(10)
+
 # Loop para esperar por novas gravações até que a palavra "fim" seja dita
 while True:
     # Usando o microfone como fonte de áudio
     with sr.Microphone() as source:
         print("Fale alguma coisa!")
         audio = r.listen(source)
-
     # Usando o Google Speech Recognition para transcrever o áudio em texto
     try:
         texto = r.recognize_google(audio, language='pt-BR')
         print("Você disse: " + texto)
-        
+        voice = switchVoiceRecoginition(r.recognize_google(audio, language='pt-BR'))
+        # if (voice == 0):
+        #     playSetence("Este comando não existe")
+
         # Verificando se a palavra "fim" foi dita para finalizar o loop
         if "fim" in texto:
             break
@@ -55,6 +99,7 @@ while True:
             tts.save(file_name)
             pygame.mixer.music.load(file_name)
             pygame.mixer.music.play()
+            listSavedFilesAndDelete()
             while pygame.mixer.music.get_busy():
                 pygame.time.Clock().tick(10)
                 
